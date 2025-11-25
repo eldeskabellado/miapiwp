@@ -41,11 +41,11 @@ let connectionState = 'disconnected';
  */
 async function connectToWhatsApp() {
   console.log('🔄 Iniciando conexión con WhatsApp...');
-  
+
   try {
     // Cargar o crear sesión de autenticación
     const { state, saveCreds } = await useMultiFileAuthState('auth_info');
-    
+
     // Crear socket de WhatsApp
     sock = makeWASocket({
       auth: state,
@@ -57,11 +57,11 @@ async function connectToWhatsApp() {
       emitOwnEvents: true,
       generateHighQualityLinkPreview: true
     });
-    
+
     // Evento: Actualización de conexión
     sock.ev.on('connection.update', async (update) => {
       const { connection, lastDisconnect, qr } = update;
-      
+
       // Si hay código QR, generarlo en Base64
       if (qr) {
         console.log('📱 Código QR generado');
@@ -73,15 +73,15 @@ async function connectToWhatsApp() {
           console.error('❌ Error al generar QR:', err);
         }
       }
-      
+
       // Estado de la conexión
       if (connection === 'close') {
         connectionState = 'disconnected';
         isConnected = false;
-        
+
         const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
         console.log('❌ Conexión cerrada. Reconectar:', shouldReconnect);
-        
+
         if (shouldReconnect) {
           console.log('🔄 Reconectando en 5 segundos...');
           setTimeout(() => connectToWhatsApp(), 5000);
@@ -96,10 +96,10 @@ async function connectToWhatsApp() {
         console.log('📡 Estado de conexión:', connection);
       }
     });
-    
+
     // Evento: Actualización de credenciales
     sock.ev.on('creds.update', saveCreds);
-    
+
     // Evento: Mensajes recibidos (para futuras funcionalidades)
     sock.ev.on('messages.upsert', async (m) => {
       const message = m.messages[0];
@@ -110,7 +110,7 @@ async function connectToWhatsApp() {
         });
       }
     });
-    
+
   } catch (error) {
     console.error('❌ Error al conectar:', error);
     setTimeout(() => connectToWhatsApp(), 5000);
@@ -123,12 +123,12 @@ async function connectToWhatsApp() {
 function formatPhoneNumber(number) {
   // Remover caracteres no numéricos
   let cleaned = number.replace(/\D/g, '');
-  
+
   // Si no termina en @s.whatsapp.net, agregarlo
   if (!cleaned.includes('@')) {
     cleaned = cleaned + '@s.whatsapp.net';
   }
-  
+
   return cleaned;
 }
 
@@ -145,7 +145,7 @@ app.get('/session/qr', async (req, res) => {
         connected: true
       });
     }
-    
+
     if (!qrCode) {
       return res.status(404).json({
         success: false,
@@ -153,13 +153,13 @@ app.get('/session/qr', async (req, res) => {
         message: 'Esperando generación del QR...'
       });
     }
-    
+
     res.status(200).json({
       success: true,
       qr: qrCode,
       message: 'Escanea este código con WhatsApp'
     });
-    
+
   } catch (error) {
     console.error('❌ Error en /session/qr:', error);
     res.status(500).json({
@@ -194,28 +194,28 @@ app.post('/message/text', async (req, res) => {
         error: 'No conectado a WhatsApp'
       });
     }
-    
+
     const { number, text } = req.body;
-    
+
     if (!number || !text) {
       return res.status(400).json({
         success: false,
         error: 'Número y texto son requeridos'
       });
     }
-    
+
     const jid = formatPhoneNumber(number);
     console.log(`📤 Enviando texto a ${jid}`);
-    
+
     const result = await sock.sendMessage(jid, { text });
-    
+
     res.status(200).json({
       success: true,
       message: 'Mensaje enviado',
       messageId: result.key.id,
       timestamp: result.messageTimestamp
     });
-    
+
   } catch (error) {
     console.error('❌ Error en /message/text:', error);
     res.status(500).json({
@@ -238,35 +238,35 @@ app.post('/message/image', async (req, res) => {
         error: 'No conectado a WhatsApp'
       });
     }
-    
+
     const { number, image, fileName, caption } = req.body;
-    
+
     if (!number || !image) {
       return res.status(400).json({
         success: false,
         error: 'Número e imagen son requeridos'
       });
     }
-    
+
     const jid = formatPhoneNumber(number);
     console.log(`📤 Enviando imagen a ${jid}: ${fileName || 'sin nombre'}`);
-    
+
     // Convertir Base64 a Buffer
     const imageBuffer = Buffer.from(image, 'base64');
-    
+
     const result = await sock.sendMessage(jid, {
       image: imageBuffer,
       caption: caption || '',
       fileName: fileName || 'image.jpg'
     });
-    
+
     res.status(200).json({
       success: true,
       message: 'Imagen enviada',
       messageId: result.key.id,
       timestamp: result.messageTimestamp
     });
-    
+
   } catch (error) {
     console.error('❌ Error en /message/image:', error);
     res.status(500).json({
@@ -289,35 +289,35 @@ app.post('/message/doc', async (req, res) => {
         error: 'No conectado a WhatsApp'
       });
     }
-    
+
     const { number, document, fileName, mimetype } = req.body;
-    
+
     if (!number || !document) {
       return res.status(400).json({
         success: false,
         error: 'Número y documento son requeridos'
       });
     }
-    
+
     const jid = formatPhoneNumber(number);
     console.log(`📤 Enviando documento a ${jid}: ${fileName || 'documento'}`);
-    
+
     // Convertir Base64 a Buffer
     const docBuffer = Buffer.from(document, 'base64');
-    
+
     const result = await sock.sendMessage(jid, {
       document: docBuffer,
       fileName: fileName || 'document.pdf',
       mimetype: mimetype || 'application/pdf'
     });
-    
+
     res.status(200).json({
       success: true,
       message: 'Documento enviado',
       messageId: result.key.id,
       timestamp: result.messageTimestamp
     });
-    
+
   } catch (error) {
     console.error('❌ Error en /message/doc:', error);
     res.status(500).json({
@@ -340,35 +340,35 @@ app.post('/message/audio', async (req, res) => {
         error: 'No conectado a WhatsApp'
       });
     }
-    
+
     const { number, audio, fileName } = req.body;
-    
+
     if (!number || !audio) {
       return res.status(400).json({
         success: false,
         error: 'Número y audio son requeridos'
       });
     }
-    
+
     const jid = formatPhoneNumber(number);
     console.log(`📤 Enviando audio a ${jid}: ${fileName || 'audio'}`);
-    
+
     // Convertir Base64 a Buffer
     const audioBuffer = Buffer.from(audio, 'base64');
-    
+
     const result = await sock.sendMessage(jid, {
       audio: audioBuffer,
       mimetype: 'audio/mp4',
       ptt: true // Nota de voz
     });
-    
+
     res.status(200).json({
       success: true,
       message: 'Audio enviado',
       messageId: result.key.id,
       timestamp: result.messageTimestamp
     });
-    
+
   } catch (error) {
     console.error('❌ Error en /message/audio:', error);
     res.status(500).json({
@@ -390,27 +390,27 @@ app.post('/session/logout', async (req, res) => {
         error: 'No hay sesión activa'
       });
     }
-    
+
     await sock.logout();
-    
+
     // Eliminar carpeta de autenticación
     const authPath = path.join(__dirname, 'auth_info');
     if (fs.existsSync(authPath)) {
       fs.rmSync(authPath, { recursive: true, force: true });
     }
-    
+
     qrCode = null;
     isConnected = false;
     connectionState = 'disconnected';
-    
+
     res.status(200).json({
       success: true,
       message: 'Sesión cerrada exitosamente'
     });
-    
+
     // Reconectar después de 2 segundos
     setTimeout(() => connectToWhatsApp(), 2000);
-    
+
   } catch (error) {
     console.error('❌ Error en /session/logout:', error);
     res.status(500).json({
@@ -419,6 +419,54 @@ app.post('/session/logout', async (req, res) => {
     });
   }
 });
+
+/**
+ * ENDPOINT: Reset/Forzar nuevo QR
+ * POST /session/reset
+ */
+app.post('/session/reset', async (req, res) => {
+  try {
+    console.log('🔄 Reseteando sesión...');
+
+    // Cerrar conexión actual si existe
+    if (sock) {
+      try {
+        await sock.logout();
+      } catch (err) {
+        console.log('⚠️  No se pudo cerrar sesión limpiamente:', err.message);
+      }
+    }
+
+    // Eliminar carpeta de autenticación
+    const authPath = path.join(__dirname, 'auth_info');
+    if (fs.existsSync(authPath)) {
+      fs.rmSync(authPath, { recursive: true, force: true });
+      console.log('🗑️  Sesión anterior eliminada');
+    }
+
+    // Resetear variables
+    qrCode = null;
+    isConnected = false;
+    connectionState = 'disconnected';
+    sock = null;
+
+    res.status(200).json({
+      success: true,
+      message: 'Sesión reseteada. Generando nuevo QR...'
+    });
+
+    // Reconectar después de 1 segundo
+    setTimeout(() => connectToWhatsApp(), 1000);
+
+  } catch (error) {
+    console.error('❌ Error en /session/reset:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 
 /**
  * Iniciar servidor
@@ -439,8 +487,9 @@ app.listen(PORT, () => {
   console.log(`   POST http://localhost:${PORT}/message/doc      - Enviar documento`);
   console.log(`   POST http://localhost:${PORT}/message/audio    - Enviar audio`);
   console.log(`   POST http://localhost:${PORT}/session/logout   - Cerrar sesión`);
+  console.log(`   POST http://localhost:${PORT}/session/reset    - Resetear y generar nuevo QR`);
   console.log('');
-  
+
   // Iniciar conexión con WhatsApp
   connectToWhatsApp();
 });
@@ -448,11 +497,11 @@ app.listen(PORT, () => {
 // Manejo de señales de terminación
 process.on('SIGINT', async () => {
   console.log('\n⚠️  Cerrando servidor...');
-  
+
   if (isConnected && sock) {
     console.log('📴 Cerrando conexión con WhatsApp...');
     await sock.logout();
   }
-  
+
   process.exit(0);
 });

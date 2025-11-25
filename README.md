@@ -119,32 +119,49 @@ docker run -p 3000:3000 whatsapp-api
 
 ## 🌐 Deployment
 
-### VPS Automático
+### Dokploy (⭐ Recomendado)
+```bash
+# Ver guía completa en DOKPLOY.md
+# Deploy automático con SSL, monitoreo y auto-deploy desde Git
+```
+📖 **Guía completa:** Ver `DOKPLOY.md`
+
+### Docker Compose
+```bash
+# Deploy rápido con Docker
+docker-compose up -d
+```
+
+### VPS Manual
 ```bash
 chmod +x deployment/deploy-vps.sh
 sudo ./deployment/deploy-vps.sh
 ```
 
-### Dokploy (Recomendado)
-Ver: `../docs/DOKPLOY.md`
+### Otras opciones
+- **Heroku**: `git push heroku main`
+- **Railway**: Conectar repo de GitHub
+- **Render**: Deploy desde dashboard
 
-### Heroku
-```bash
-heroku create
-git push heroku main
-```
 
 ---
 
 ## 📚 Documentación
 
-**Ver carpeta `../docs/`:**
-- QUICKSTART.md - Setup rápido
-- DEPLOYMENT.md - Opciones de hosting
-- DOKPLOY.md - Deploy con Dokploy ⭐
-- DOCKER.md - Contenedores
-- CAMBIAR-PUERTO.md - Puertos
-- TROUBLESHOOTING.md - Problemas
+### 🚀 Deployment
+- **DOKPLOY-PASO-A-PASO.md** - 📖 Guía completa paso a paso para Dokploy
+- **DOKPLOY-CHECKLIST.md** - ✅ Checklist rápido de deployment
+- **DOKPLOY.md** - 📘 Guía detallada de Dokploy
+- **DEPLOYMENT.md** - 🐳 Opciones de deployment con Docker
+
+### 🔧 Configuración
+- **PORTS.md** - 🔌 Configuración de puertos
+- **TROUBLESHOOTING.md** - 🆘 Solución de problemas
+- **RESUMEN.md** - 📋 Resumen ejecutivo del proyecto
+
+### 📝 Referencia
+- **dokploy.config.env** - Configuración de variables para Dokploy
+- **.env.example** - Plantilla de variables de entorno
 
 ---
 
