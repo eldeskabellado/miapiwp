@@ -1,0 +1,62 @@
+# ============================================================================
+# .dockerignore - Archivos a excluir del contexto de Docker
+# ============================================================================
+
+# Dependencias (se instalan en el build)
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Archivos de entorno (sensibles)
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentación y desarrollo
+README.md
+*.md
+docs/
+.vscode/
+.idea/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs y datos temporales
+logs/
+*.log
+auth_info/
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.*.yml
+
+# Deployment
+deployment/
+
+# Configuración de servidor web
+nginx.conf
+
+# Testing
+test/
+tests/
+*.test.js
+*.spec.js
+coverage/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml

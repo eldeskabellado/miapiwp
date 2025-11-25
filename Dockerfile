@@ -44,9 +44,8 @@ WORKDIR /app
 # Copiar dependencias desde builder
 COPY --from=builder --chown=whatsapp:whatsapp /app/node_modules ./node_modules
 
-# Copiar código de la aplicación
-COPY --chown=whatsapp:whatsapp baileys-server.js .
-COPY --chown=whatsapp:whatsapp package.json .
+# Copiar código de la aplicación (todo el proyecto)
+COPY --chown=whatsapp:whatsapp . .
 
 # Crear directorios necesarios
 RUN mkdir -p auth_info logs && \
@@ -56,7 +55,7 @@ RUN mkdir -p auth_info logs && \
 USER whatsapp
 
 # Exponer puerto
-EXPOSE 3000
+EXPOSE 3500
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \

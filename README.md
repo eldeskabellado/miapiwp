@@ -74,16 +74,34 @@ nano .env
 ```
 
 ```env
+# Puerto interno del contenedor
 PORT=3000
-NODE_ENV=production
+
+# Puerto externo (para Docker)
+EXTERNAL_PORT=3000
+
+# Seguridad
 API_KEY=tu-clave-secreta
 ```
 
 ### Cambiar Puerto
 
+**Desarrollo (sin Docker):**
 ```bash
 PORT=8080 npm start
 ```
+
+**Docker (puerto externo):**
+```bash
+# Editar .env
+EXTERNAL_PORT=8080
+
+# Reiniciar
+docker-compose down && docker-compose up -d
+```
+
+> 📖 **Más info:** Ver `PORTS.md` para guía completa de puertos
+
 
 ---
 
