@@ -158,13 +158,16 @@ cd "$APP_DIR"
 # Verificar si existe pnpm-lock.yaml
 if [ -f "pnpm-lock.yaml" ]; then
     echo -e "${BLUE}[INFO]${NC} Usando pnpm (detectado pnpm-lock.yaml)"
-    su - whatsapp -c "cd $APP_DIR && pnpm install --frozen-lockfile --prod"
+    # Instalar TODAS las dependencias (necesario para ES Modules)
+    su - whatsapp -c "cd $APP_DIR && pnpm install --frozen-lockfile"
 elif [ -f "package-lock.json" ]; then
     echo -e "${BLUE}[INFO]${NC} Usando npm (detectado package-lock.json)"
-    su - whatsapp -c "cd $APP_DIR && npm ci --omit=dev"
+    # Instalar TODAS las dependencias
+    su - whatsapp -c "cd $APP_DIR && npm ci"
 else
     echo -e "${BLUE}[INFO]${NC} Usando pnpm (por defecto)"
-    su - whatsapp -c "cd $APP_DIR && pnpm install --prod"
+    # Instalar TODAS las dependencias
+    su - whatsapp -c "cd $APP_DIR && pnpm install"
 fi
 
 echo -e "${GREEN}[OK]${NC} Dependencias instaladas"
@@ -196,14 +199,26 @@ echo -e "${YELLOW}[9/11]${NC} Configurando PM2..."
 # Detener proceso anterior si existe
 su - whatsapp -c "pm2 delete whatsapp-api" 2>/dev/null || true
 
-# Iniciar aplicación
-su - whatsapp -c "cd $APP_DIR && pm2 start baileys-server.js --name whatsapp-api"
+# Verificar si existe ecosystem.config.js
+if [ -f "$APP_DIR/ecosystem.config.js" ]; then
+    echo -e "${BLUE}[INFO]${NC} Usando ecosystem.config.js"
+    # Iniciar con archivo de configuración
+    su - whatsapp -c "cd $APP_DIR && pm2 start ecosystem.config.js"
+else
+    echo -e "${BLUE}[INFO]${NC} Usando configuración manual"
+    # Iniciar manualmente con configuración básica
+    su - whatsapp -c "cd $APP_DIR && pm2 start baileys-server.js --name whatsapp-api --time --max-memory-restart 1G"
+fi
+
+# Guardar configuración de PM2
 su - whatsapp -c "pm2 save"
 
-# Configurar inicio automático
+# Configurar inicio automático en boot del sistema
 env PATH=$PATH:/usr/bin pm2 startup systemd -u whatsapp --hp /home/whatsapp
 systemctl enable pm2-whatsapp
-echo -e "${GREEN}[OK]${NC} PM2 configurado"
+
+echo -e "${GREEN}[OK]${NC} PM2 configurado para inicio automático"
+echo -e "${GREEN}[OK]${NC} Aplicación configurada en puerto 3000"
 
 # ============================================================================
 # 10. CONFIGURAR FIREWALL
