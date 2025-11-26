@@ -41,7 +41,7 @@ module.exports = {
         // Configuración adicional
         cron_restart: '0 3 * * *', // Reinicio diario a las 3 AM (opcional)
 
-        // Argumentos de Node.js
-        node_args: '--max-old-space-size=1024'
+        // Argumentos de Node.js - IMPORTANTE: Habilita Web Crypto API
+        node_args: '--max-old-space-size=1024 --experimental-global-webcrypto'
     }]
 };

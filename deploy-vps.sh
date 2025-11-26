@@ -39,25 +39,55 @@ apt update -y
 apt upgrade -y
 
 # ============================================================================
-# 2. INSTALAR NODE.JS
+# 2. INSTALAR NODE.JS 20 LTS
 # ============================================================================
 echo ""
-echo -e "${YELLOW}[2/11]${NC} Instalando Node.js 20 LTS..."
-if ! command -v node &> /dev/null; then
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-    apt install -y nodejs
-    echo -e "${GREEN}[OK]${NC} Node.js instalado"
-else
-    NODE_VERSION=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
-    if [ "$NODE_VERSION" -lt 18 ]; then
-        echo -e "${YELLOW}[INFO]${NC} Actualizando Node.js a versión 20..."
+echo -e "${YELLOW}[2/11]${NC} Verificando Node.js..."
+
+# Verificar si Node.js está instalado
+if command -v node &> /dev/null; then
+    CURRENT_VERSION=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
+    echo -e "${BLUE}[INFO]${NC} Node.js v$CURRENT_VERSION detectado"
+    
+    # Si es versión 18 o menor, eliminarla
+    if [ "$CURRENT_VERSION" -le 18 ]; then
+        echo -e "${YELLOW}[INFO]${NC} Eliminando Node.js v$CURRENT_VERSION (incompatible con Baileys 7.x)..."
+        
+        # Eliminar Node.js y npm
+        apt remove -y nodejs npm
+        apt purge -y nodejs npm
+        apt autoremove -y
+        
+        # Limpiar repositorios antiguos de NodeSource
+        rm -f /etc/apt/sources.list.d/nodesource.list
+        rm -f /usr/share/keyrings/nodesource.gpg
+        
+        echo -e "${GREEN}[OK]${NC} Node.js v$CURRENT_VERSION eliminado"
+        
+        # Instalar Node.js 20
+        echo -e "${YELLOW}[INFO]${NC} Instalando Node.js 20 LTS..."
         curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
         apt install -y nodejs
-        echo -e "${GREEN}[OK]${NC} Node.js actualizado"
+        echo -e "${GREEN}[OK]${NC} Node.js 20 LTS instalado"
+    elif [ "$CURRENT_VERSION" -ge 20 ]; then
+        echo -e "${GREEN}[OK]${NC} Node.js v$CURRENT_VERSION ya instalado (compatible)"
     else
-        echo -e "${GREEN}[OK]${NC} Node.js ya está instalado (v$NODE_VERSION)"
+        # Versión 19 - actualizar a 20
+        echo -e "${YELLOW}[INFO]${NC} Actualizando Node.js v$CURRENT_VERSION a v20..."
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+        apt install -y nodejs
+        echo -e "${GREEN}[OK]${NC} Node.js actualizado a v20"
     fi
+else
+    # Node.js no está instalado
+    echo -e "${YELLOW}[INFO]${NC} Node.js no encontrado. Instalando Node.js 20 LTS..."
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    apt install -y nodejs
+    echo -e "${GREEN}[OK]${NC} Node.js 20 LTS instalado"
 fi
+
+# Verificar instalación
+echo -e "${BLUE}[INFO]${NC} Verificando instalación..."
 node --version
 npm --version
 
@@ -206,8 +236,8 @@ if [ -f "$APP_DIR/ecosystem.config.js" ]; then
     su - whatsapp -c "cd $APP_DIR && pm2 start ecosystem.config.js"
 else
     echo -e "${BLUE}[INFO]${NC} Usando configuración manual"
-    # Iniciar manualmente con configuración básica
-    su - whatsapp -c "cd $APP_DIR && pm2 start baileys-server.js --name whatsapp-api --time --max-memory-restart 1G"
+    # Iniciar manualmente con configuración básica + flag Web Crypto API
+    su - whatsapp -c "cd $APP_DIR && pm2 start baileys-server.js --name whatsapp-api --time --max-memory-restart 1G --node-args='--experimental-global-webcrypto --max-old-space-size=1024'"
 fi
 
 # Guardar configuración de PM2
