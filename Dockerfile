@@ -4,7 +4,7 @@
 # ============================================================================
 
 # Stage 1: Builder
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Instalar pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -19,7 +19,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --shamefully-hoist
 
 # Stage 2: Producción
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Metadata
 LABEL maintainer="Descabellado <contacto@ecomunik2.com>"
