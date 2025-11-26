@@ -229,11 +229,11 @@ echo -e "${YELLOW}[9/11]${NC} Configurando PM2..."
 # Detener proceso anterior si existe
 su - whatsapp -c "pm2 delete whatsapp-api" 2>/dev/null || true
 
-# Verificar si existe ecosystem.config.js
-if [ -f "$APP_DIR/ecosystem.config.js" ]; then
-    echo -e "${BLUE}[INFO]${NC} Usando ecosystem.config.js"
+# Verificar si existe ecosystem.config.cjs
+if [ -f "$APP_DIR/ecosystem.config.cjs" ]; then
+    echo -e "${BLUE}[INFO]${NC} Usando ecosystem.config.cjs"
     # Iniciar con archivo de configuración
-    su - whatsapp -c "cd $APP_DIR && pm2 start ecosystem.config.js"
+    su - whatsapp -c "cd $APP_DIR && pm2 start ecosystem.config.cjs"
 else
     echo -e "${BLUE}[INFO]${NC} Usando configuración manual"
     # Iniciar manualmente con configuración básica + flag Web Crypto API
