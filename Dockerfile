@@ -14,9 +14,9 @@ WORKDIR /app
 # Copiar archivos de dependencias
 COPY package.json pnpm-lock.yaml ./
 
-# Instalar dependencias de producción
-RUN pnpm install --frozen-lockfile --prod && \
-    pnpm store prune
+# Instalar TODAS las dependencias (incluye dev para mejor resolución de módulos)
+# --shamefully-hoist ayuda con la resolución de módulos ESM
+RUN pnpm install --frozen-lockfile --shamefully-hoist
 
 # Stage 2: Producción
 FROM node:18-alpine

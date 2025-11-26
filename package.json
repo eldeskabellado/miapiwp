@@ -2,6 +2,7 @@
   "name": "whatsapp-baileys-api",
   "version": "1.0.0",
   "description": "WhatsApp API Server con Baileys compatible con cliente Delphi Rio",
+  "type": "module",
   "main": "baileys-server.js",
   "scripts": {
     "start": "node baileys-server.js",
