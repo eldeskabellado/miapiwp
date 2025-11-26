@@ -6,14 +6,17 @@
 # Stage 1: Builder
 FROM node:18-alpine AS builder
 
+# Instalar pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
 
 # Copiar archivos de dependencias
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml ./
 
-# Instalar dependencias (incluyendo devDependencies para build)
-RUN npm ci --only=production && \
-    npm cache clean --force
+# Instalar dependencias de producción
+RUN pnpm install --frozen-lockfile --prod && \
+    pnpm store prune
 
 # Stage 2: Producción
 FROM node:18-alpine
