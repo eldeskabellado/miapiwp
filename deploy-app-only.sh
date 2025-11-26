@@ -72,27 +72,28 @@ echo -e "${GREEN}[OK]${NC} PM2 $(pm2 --version) instalado"
 echo ""
 echo -e "${YELLOW}[2/5]${NC} Configuración del deployment..."
 
-# Solicitar directorio de instalación
+# Obtener directorio actual
+CURRENT_DIR=$(pwd)
+
+# Solicitar directorio de instalación (por defecto el actual)
 echo ""
-read -p "Directorio de instalación [/opt/whatsapp-api]: " APP_DIR
-APP_DIR=${APP_DIR:-/opt/whatsapp-api}
+read -p "Directorio de instalación [$CURRENT_DIR]: " APP_DIR
+APP_DIR=${APP_DIR:-$CURRENT_DIR}
 
 # Solicitar nombre de la aplicación PM2
 echo ""
 read -p "Nombre de la aplicación PM2 [whatsapp-api]: " PM2_APP_NAME
 PM2_APP_NAME=${PM2_APP_NAME:-whatsapp-api}
 
-# Solicitar puerto
-echo ""
-read -p "Puerto de la aplicación [3000]: " APP_PORT
-APP_PORT=${APP_PORT:-3000}
+# El puerto se tomará del .env (por defecto 3000)
+APP_PORT=3000
 
 # Confirmar
 echo ""
 echo -e "${BLUE}[RESUMEN]${NC}"
 echo -e "  Directorio: ${YELLOW}$APP_DIR${NC}"
 echo -e "  Nombre PM2: ${YELLOW}$PM2_APP_NAME${NC}"
-echo -e "  Puerto:     ${YELLOW}$APP_PORT${NC}"
+echo -e "  Puerto:     ${YELLOW}Se configurará en .env (por defecto 3000)${NC}"
 echo ""
 read -p "¿Continuar? (s/n): " CONFIRM
 
