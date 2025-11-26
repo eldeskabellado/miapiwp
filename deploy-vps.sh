@@ -175,6 +175,13 @@ else
     exit 1
 fi
 
+# Eliminar sesión anterior de WhatsApp (para empezar limpio)
+if [ -d "$APP_DIR/auth_info" ]; then
+    echo -e "${YELLOW}[INFO]${NC} Eliminando sesión anterior de WhatsApp..."
+    rm -rf "$APP_DIR/auth_info"
+    echo -e "${GREEN}[OK]${NC} Sesión anterior eliminada (se generará nuevo QR)"
+fi
+
 # Dar permisos
 chown -R whatsapp:whatsapp "$APP_DIR"
 
