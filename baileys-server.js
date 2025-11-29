@@ -84,12 +84,40 @@ async function connectToWhatsApp() {
         connectionState = 'disconnected';
         isConnected = false;
 
-        const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
-        console.log('❌ Conexión cerrada. Reconectar:', shouldReconnect);
+        const statusCode = lastDisconnect?.error?.output?.statusCode;
+        const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+
+        console.log('❌ Conexión cerrada.');
+        console.log('   Status Code:', statusCode);
+        console.log('   DisconnectReason.loggedOut:', DisconnectReason.loggedOut);
+        console.log('   Reconectar:', shouldReconnect);
 
         if (shouldReconnect) {
           console.log('🔄 Reconectando en 5 segundos...');
           setTimeout(() => connectToWhatsApp(), 5000);
+        } else {
+          console.log('⚠️ Sesión cerrada desde WhatsApp (logout). Eliminando sesión local...');
+
+          // Eliminar carpeta de autenticación para forzar nuevo QR
+          const authPath = path.join(__dirname, 'auth_info');
+          if (fs.existsSync(authPath)) {
+            try {
+              fs.rmSync(authPath, { recursive: true, force: true });
+              console.log('🗑️ Sesión eliminada correctamente');
+            } catch (err) {
+              console.error('❌ Error al eliminar sesión:', err);
+            }
+          }
+
+          // Resetear variables
+          qrCode = null;
+          isConnected = false;
+          connectionState = 'disconnected';
+          sock = null;
+
+          // Reiniciar proceso de conexión
+          console.log('🔄 Reiniciando proceso de conexión en 2 segundos...');
+          setTimeout(() => connectToWhatsApp(), 2000);
         }
       } else if (connection === 'open') {
         connectionState = 'connected';
@@ -429,7 +457,7 @@ app.post('/session/logout', async (req, res) => {
  * ENDPOINT: Reset/Forzar nuevo QR
  * POST /session/reset
  */
-app.post('/session/reset', async (req, res) => {
+app.all('/session/reset', async (req, res) => {
   try {
     console.log('🔄 Reseteando sesión...');
 
@@ -503,9 +531,11 @@ app.listen(PORT, () => {
 process.on('SIGINT', async () => {
   console.log('\n⚠️  Cerrando servidor...');
 
-  if (isConnected && sock) {
-    console.log('📴 Cerrando conexión con WhatsApp...');
-    await sock.logout();
+  if (sock) {
+    console.log('📴 Cerrando conexión con WhatsApp (sesión se mantendrá)...');
+    // NO hacer logout para preservar la sesión
+    // Solo cerrar el socket
+    sock.end();
   }
 
   process.exit(0);
