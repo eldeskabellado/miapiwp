@@ -1,81 +1,42 @@
 version: '3.8'
 
 services:
-  # ============================================================================
-  # WhatsApp API Service
-  # ============================================================================
   whatsapp-api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: whatsapp-api
+    container_name: whatsapp-baileys-api
     restart: unless-stopped
+
+    # Puerto configurable
     ports:
-      - "${EXTERNAL_PORT:-3500}:3000"
-    volumes:
-      # Persistir sesiones de WhatsApp
-      - ./auth_info:/app/auth_info
-      # Logs
-      - ./logs:/app/logs
+      - "${PORT:-3000}:${PORT:-3000}"
+
+    # Variables de entorno
     environment:
+      - PORT=${PORT:-3000}
       - NODE_ENV=production
-      - PORT=3000
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - API_KEY=${API_KEY:-changeme123}
-    depends_on:
-      - redis
-    networks:
-      - whatsapp-network
+      - TZ=America/Caracas
+
+    # Volumen para persistir la sesión de WhatsApp
+    volumes:
+      - ./auth_info:/app/auth_info
+      - ./logs:/app/logs
+
+    # Health check
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3000/session/status" ]
+      test: [ "CMD", "node", "-e", "require('http').get('http://localhost:' + (process.env.PORT || 3000) + '/session/status', (r) => process.exit(r.statusCode === 200 ? 0 : 1))" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
-  # ============================================================================
-  # Redis - Para persistencia de sesiones y caché
-  # ============================================================================
-  redis:
-    image: redis:7-alpine
-    container_name: whatsapp-redis
-    restart: unless-stopped
-    volumes:
-      - redis-data:/data
-    networks:
-      - whatsapp-network
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # ============================================================================
-  # Nginx - Reverse Proxy (Opcional)
-  # ============================================================================
-  nginx:
-    image: nginx:alpine
-    container_name: whatsapp-nginx
-    restart: unless-stopped
-    ports:
-      - "${NGINX_HTTP_PORT:-80}:80"
-      - "${NGINX_HTTPS_PORT:-443}:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - whatsapp-api
-    networks:
-      - whatsapp-network
-    profiles:
-      - with-nginx
-
-volumes:
-  redis-data:
-    driver: local
-
-networks:
-  whatsapp-network:
-    driver: bridge
+    # Limitar recursos (opcional, ajustar según necesidad)
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M

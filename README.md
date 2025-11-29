@@ -108,12 +108,17 @@ docker-compose down && docker-compose up -d
 ## 🐳 Docker
 
 ```bash
-# Stack completo
+# Stack completo con docker-compose
 docker-compose up -d
 
 # Solo API
-docker run -p 3000:3000 whatsapp-api
+docker run -p 3000:3000 -e PORT=3000 whatsapp-api
+
+# Con puerto personalizado
+docker run -p 8080:8080 -e PORT=8080 whatsapp-api
 ```
+
+📖 **Guía completa:** Ver `DOCKER.md` para deployment, CI/CD y publicación en Docker Hub
 
 ---
 

@@ -175,13 +175,13 @@ echo -e "${YELLOW}[4/5]${NC} Instalando dependencias..."
 
 cd "$APP_DIR"
 
-# Verificar lockfile
+# Verificar lockfile e instalar TODAS las dependencias (incluye devDependencies)
 if [ -f "pnpm-lock.yaml" ]; then
     echo -e "${BLUE}[INFO]${NC} Usando pnpm"
     pnpm install --frozen-lockfile
 elif [ -f "package-lock.json" ]; then
     echo -e "${BLUE}[INFO]${NC} Usando npm"
-    npm ci
+    npm install
 else
     echo -e "${BLUE}[INFO]${NC} Instalando con pnpm"
     pnpm install
@@ -193,15 +193,19 @@ echo -e "${GREEN}[OK]${NC} Dependencias instaladas"
 mkdir -p logs
 mkdir -p auth_info
 
-# Configurar .env
+# Verificar .env
 if [ ! -f ".env" ]; then
-    if [ -f ".env.example" ]; then
-        cp .env.example .env
-        # Actualizar puerto en .env
-        sed -i "s/PORT=.*/PORT=$APP_PORT/" .env
-        echo -e "${GREEN}[OK]${NC} Archivo .env creado"
-        echo -e "${YELLOW}[IMPORTANTE]${NC} Edita $APP_DIR/.env con tus valores"
-    fi
+    echo ""
+    echo -e "${YELLOW}[IMPORTANTE]${NC} No se encontró archivo .env"
+    echo -e "${YELLOW}[ACCIÓN REQUERIDA]${NC} Debes crear y editar manualmente el archivo:"
+    echo -e "  ${BLUE}$APP_DIR/.env${NC}"
+    echo ""
+    echo -e "Puedes copiar desde .env.example:"
+    echo -e "  ${YELLOW}cp $APP_DIR/.env.example $APP_DIR/.env${NC}"
+    echo ""
+    read -p "Presiona ENTER para continuar..."
+else
+    echo -e "${GREEN}[OK]${NC} Archivo .env encontrado"
 fi
 
 # ============================================================================
@@ -220,8 +224,8 @@ module.exports = {
     instances: 1,
     exec_mode: 'fork',
     env: {
-      NODE_ENV: 'production',
-      PORT: $APP_PORT
+      NODE_ENV: 'production'
+      // PORT se lee desde .env
     },
     autorestart: true,
     watch: false,
@@ -270,6 +274,14 @@ if pm2 list | grep -q "$PM2_APP_NAME"; then
 else
     echo -e "${RED}[ERROR]${NC} Aplicación PM2 no está activa"
     exit 1
+fi
+
+# Leer puerto desde .env
+if [ -f "$APP_DIR/.env" ]; then
+    APP_PORT=$(grep "^PORT=" "$APP_DIR/.env" | cut -d'=' -f2)
+    APP_PORT=${APP_PORT:-3000}
+else
+    APP_PORT=3000
 fi
 
 # Verificar endpoint

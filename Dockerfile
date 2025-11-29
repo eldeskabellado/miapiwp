@@ -57,12 +57,12 @@ RUN mkdir -p auth_info logs && \
 # Cambiar a usuario no-root
 USER whatsapp
 
-# Exponer puerto
-EXPOSE 3500
+# Exponer puerto (configurable via PORT env var, default 3000)
+EXPOSE ${PORT:-3000}
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3000/session/status', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
+    CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 3000) + '/session/status', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
 # Usar dumb-init para manejar señales correctamente
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

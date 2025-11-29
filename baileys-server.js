@@ -9,6 +9,7 @@
  * node baileys-server.js
  */
 
+import 'dotenv/config';
 import express from 'express';
 import makeWASocket, { useMultiFileAuthState, DisconnectReason } from '@whiskeysockets/baileys';
 import QRCode from 'qrcode';
@@ -16,12 +17,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+
 // Para __dirname en ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
